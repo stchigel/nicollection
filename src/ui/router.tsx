@@ -1,14 +1,12 @@
 /**
  * T067 — router.tsx
- *
- * Rutas de la SPA. Layout como shell principal, rutas anidadas.
- * Rutas de Phase 8 que no están implementadas usan placeholders.
- * [US1-US8, FR-002]
  */
 import { createBrowserRouter } from 'react-router-dom'
 import Layout from '@ui/components/layout/Layout'
 import HomePage from '@ui/pages/HomePage'
 import AuthPage from '@ui/pages/AuthPage'
+import PieceListPage from '@ui/pages/admin/PieceListPage'
+import PieceFormPage from '@ui/pages/admin/PieceFormPage'
 import ProtectedRoute from '@ui/components/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -26,17 +24,17 @@ export const router = createBrowserRouter([
       },
       {
         path: 'categoria/:id',
-        element: <div className="page-placeholder">Listado de piezas — Phase 8 (T080)</div>,
+        element: <div className="page-placeholder">Listado de piezas — próximamente</div>,
       },
       {
         path: 'pieza/:id',
-        element: <div className="page-placeholder">Detalle de pieza — Phase 8 (T084)</div>,
+        element: <div className="page-placeholder">Detalle de pieza — próximamente</div>,
       },
       {
         path: 'perfil',
         element: (
           <ProtectedRoute>
-            <div className="page-placeholder">Perfil — Phase 8 (T087)</div>
+            <div className="page-placeholder">Perfil — próximamente</div>
           </ProtectedRoute>
         ),
       },
@@ -47,7 +45,7 @@ export const router = createBrowserRouter([
             path: 'piezas',
             element: (
               <ProtectedRoute requiredRole="admin">
-                <div className="page-placeholder">Gestión de piezas — Phase 8 (T088)</div>
+                <PieceListPage />
               </ProtectedRoute>
             ),
           },
@@ -55,7 +53,7 @@ export const router = createBrowserRouter([
             path: 'piezas/nueva',
             element: (
               <ProtectedRoute requiredRole="admin">
-                <div className="page-placeholder">Nueva pieza — Phase 8 (T089)</div>
+                <PieceFormPage />
               </ProtectedRoute>
             ),
           },
@@ -63,7 +61,7 @@ export const router = createBrowserRouter([
             path: 'piezas/:id/editar',
             element: (
               <ProtectedRoute requiredRole="admin">
-                <div className="page-placeholder">Editar pieza — Phase 8 (T089)</div>
+                <PieceFormPage />
               </ProtectedRoute>
             ),
           },
@@ -71,7 +69,7 @@ export const router = createBrowserRouter([
             path: 'usuarios',
             element: (
               <ProtectedRoute requiredRole="admin">
-                <div className="page-placeholder">Gestión de usuarios — Phase 8 (T090)</div>
+                <div className="page-placeholder">Gestión de usuarios — próximamente</div>
               </ProtectedRoute>
             ),
           },
