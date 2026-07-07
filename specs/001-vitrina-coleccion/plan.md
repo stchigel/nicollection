@@ -143,6 +143,7 @@ nicollection/
 │
 ├── tests/
 │   ├── security/          # Tests de Firestore Security Rules — OBLIGATORIOS
+│   │   ├── categories.rules.test.ts
 │   │   ├── pieces.rules.test.ts
 │   │   ├── users.rules.test.ts
 │   │   ├── comments.rules.test.ts
@@ -151,7 +152,8 @@ nicollection/
 │   │   ├── Piece.test.ts
 │   │   ├── User.test.ts
 │   │   ├── Comment.test.ts
-│   │   └── Username.test.ts
+│   │   ├── Username.test.ts
+│   │   └── AdminData.test.ts
 │   └── integration/       # Tests de casos de uso completos — opcionales
 │
 ├── firestore.rules        # Security Rules — sincronizadas con dominio en cada commit

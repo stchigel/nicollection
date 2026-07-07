@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────
+# nicollection — .gitignore
+# ──────────────────────────────────────────────
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Coverage reports
+coverage/
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.production
+
+# Firebase local state
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+auth-debug.log
+
+# Editor
+.vscode/settings.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db

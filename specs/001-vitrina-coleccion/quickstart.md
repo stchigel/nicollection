@@ -60,9 +60,9 @@ Verificar:
 - [ ] El tiempo de carga de la home es < 5 segundos con emulador local.
 
 **Test automatizado de Security Rules (obligatorio)**:
-- Un lector anónimo puede hacer `get` en `/categories/{id}`: debe permitirse.
-- Un lector anónimo puede hacer `list` en `/categories/`: debe permitirse.
-- Un lector anónimo NO puede hacer `create/update/delete` en `/categories/`: debe rechazarse.
+- Un usuario Público (no autenticado) puede hacer `get` en `/categories/{id}`: debe permitirse.
+- Un usuario Público (no autenticado) puede hacer `list` en `/categories/`: debe permitirse.
+- Un usuario Público (no autenticado) NO puede hacer `create/update/delete` en `/categories/`: debe rechazarse.
 - Un Visitante NO puede crear categorías: debe rechazarse.
 - Un Admin puede crear/actualizar categorías: debe permitirse.
 
@@ -82,8 +82,8 @@ Verificar:
 - [ ] Al llegar al último ítem, se muestra indicador de fin de lista (no error).
 
 **Test automatizado de Security Rules**:
-- Un lector anónimo puede leer una pieza con `status: 'published'`: debe permitirse.
-- Un lector anónimo NO puede leer una pieza con `status: 'draft'`: debe rechazarse.
+- Un usuario Público (no autenticado) puede leer una pieza con `status: 'published'`: debe permitirse.
+- Un usuario Público (no autenticado) NO puede leer una pieza con `status: 'draft'`: debe rechazarse.
 - Un Visitante NO puede leer una pieza con `status: 'draft'`: debe rechazarse.
 - Un Admin puede leer una pieza con `status: 'draft'`: debe permitirse.
 
@@ -107,7 +107,7 @@ Verificar:
 - [ ] La sección de comentarios muestra aviso de "iniciar sesión" para Público.
 
 **Test automatizado de Security Rules**:
-- Un lector anónimo NO puede leer `/pieces/{id}/private/adminData`: debe rechazarse.
+- Un usuario Público (no autenticado) NO puede leer `/pieces/{id}/private/adminData`: debe rechazarse.
 - Un Visitante NO puede leer `/pieces/{id}/private/adminData`: debe rechazarse.
 - Un Admin puede leer `/pieces/{id}/private/adminData`: debe permitirse.
 

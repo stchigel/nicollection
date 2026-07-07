@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ──────────────────────────────────────────────────────────────────────────
+    // TODO: Phase 3 — Security Rules implementation (T031-T038)
+    //
+    // All rules are DENY ALL until Phase 3 is complete. This is intentional:
+    // tests/security/ (T025-T030) must be written and verified FAILING first,
+    // then the rules below are replaced by the full implementation (T031-T038).
+    //
+    // Final rules will mirror the domain invariants per Constitución X.
+    // ──────────────────────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

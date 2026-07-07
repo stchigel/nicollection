@@ -234,7 +234,7 @@ Un Admin puede ver la lista de usuarios del sistema, inhabilitar o habilitar cue
 - **FR-030**: Un Admin MUST poder cambiar el estado de publicación de una pieza entre Borrador y Publicada.
 - **FR-031**: Un Admin MUST poder eliminar una pieza permanentemente. Antes de ejecutar la eliminación, el sistema MUST mostrar una pantalla de confirmación que informe al Admin la cantidad exacta de comentarios, favoritos y entradas "En Colección" que serán eliminados como consecuencia. Solo tras la confirmación explícita se procede al borrado en cascada de la pieza y todas sus dependencias.
 - **FR-032**: El panel de gestión de piezas del Admin MUST mostrar tanto piezas Publicadas como Borradores, con indicación clara del estado de cada una.
-- **FR-033**: Los cambios en una pieza publicada MUST reflejarse en la vista pública inmediatamente tras guardarse.
+- **FR-033**: Los cambios en una pieza publicada MUST reflejarse en la vista pública en la siguiente carga de la página. *Aclaración de alcance (Decisión F14-A, 2026-07-07)*: "inmediatamente" significa disponible para cualquier usuario que cargue o recargue la ficha después del guardado. No se requiere sincronización en tiempo real para usuarios que ya tienen la página abierta. La implementación es un re-fetch estándar en la entrada a la ruta; no se usa `onSnapshot` en `PieceDetailPage`.
 
 #### Autenticación y Cuentas de Usuario
 
