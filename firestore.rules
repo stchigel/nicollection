@@ -1,17 +1,123 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ──────────────────────────────────────────────────────────────────────────
-    // TODO: Phase 3 — Security Rules implementation (T031-T038)
-    //
-    // All rules are DENY ALL until Phase 3 is complete. This is intentional:
-    // tests/security/ (T025-T030) must be written and verified FAILING first,
-    // then the rules below are replaced by the full implementation (T031-T038).
-    //
-    // Final rules will mirror the domain invariants per Constitución X.
-    // ──────────────────────────────────────────────────────────────────────────
-    match /{document=**} {
-      allow read, write: if false;
+
+    // ─── Funciones auxiliares (T031) ────────────────────────────────────────
+    // data-model.md §5 — espejo exacto del dominio (Constitución X)
+
+    function isAuthenticated() {
+      return request.auth != null;
     }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && userDoc().data.role == 'admin';
+    }
+
+    function isEnabledAdmin() {
+      return isAdmin() && userDoc().data.enabled == true;
+    }
+
+    function isEnabledVisitorOrAdmin() {
+      return isAuthenticated() && userDoc().data.enabled == true;
+    }
+
+    // ─── /categories/{categoryId} (T032) ────────────────────────────────────
+    // read: todos | write: solo Admin habilitado [SEC-001, SEC-003]
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isEnabledAdmin();
+    }
+
+    // ─── /pieces/{pieceId} (T033) ───────────────────────────────────────────
+    // read: published=todos, draft=solo Admin
+    // write: solo Admin habilitado [SEC-001 a SEC-004]
+    match /pieces/{pieceId} {
+      allow read: if resource.data.status == 'published' || isEnabledAdmin();
+      allow create: if isEnabledAdmin()
+                    && request.resource.data.title != ''
+                    && request.resource.data.categoryId != ''
+                    && request.resource.data.status in ['published', 'draft'];
+      allow update: if isEnabledAdmin();
+      allow delete: if isEnabledAdmin();
+
+      // ─── /pieces/{pieceId}/private/{doc} (T034) ─────────────────────────
+      // Solo Admin habilitado puede leer/escribir datos de administración [SEC-004(a)]
+      match /private/{doc} {
+        allow read, write: if isEnabledAdmin();
+      }
+    }
+
+    // ─── /users/{uid} (T035) ────────────────────────────────────────────────
+    // read: propio usuario o Admin | create: propio usuario en registro
+    // update: solo Admin (sin auto-inhabilitación) | delete: nadie [SEC-004(e), SEC-006]
+    match /users/{uid} {
+      allow read: if isAuthenticated()
+                  && (request.auth.uid == uid || isEnabledAdmin());
+
+      allow create: if isAuthenticated()
+                    && request.auth.uid == uid
+                    && request.resource.data.role == 'visitor'
+                    && request.resource.data.enabled == true;
+
+      allow update: if isEnabledAdmin()
+                    && !(request.auth.uid == uid
+                         && request.resource.data.enabled == false);
+
+      allow delete: if false;
+    }
+
+    // ─── /usernames/{username} (T036) ───────────────────────────────────────
+    // read: todos (verificar disponibilidad) | create: propio uid
+    // update: nadie | delete: solo Admin habilitado [FR-035]
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+                    && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isEnabledAdmin();
+    }
+
+    // ─── /comments/{commentId} (T037) ───────────────────────────────────────
+    // read: todos | create: Visitante/Admin habilitado con validaciones
+    // update/delete: autor habilitado o Admin [SEC-002, SEC-004(c)]
+    match /comments/{commentId} {
+      allow read: if true;
+
+      allow create: if isEnabledVisitorOrAdmin()
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.text.size() >= 1
+                    && request.resource.data.text.size() <= 1000
+                    && request.resource.data.edited == false;
+
+      allow update: if isEnabledVisitorOrAdmin()
+                    && (resource.data.authorId == request.auth.uid
+                        || isEnabledAdmin());
+
+      allow delete: if isEnabledVisitorOrAdmin()
+                    && (resource.data.authorId == request.auth.uid
+                        || isEnabledAdmin());
+    }
+
+    // ─── /users/{uid}/favorites/{pieceId} (T038) ────────────────────────────
+    // Solo propietario habilitado puede leer/crear/eliminar; nadie puede update
+    // [SEC-002, SEC-004(c), FR-046]
+    match /users/{uid}/favorites/{pieceId} {
+      allow read, create, delete: if isEnabledVisitorOrAdmin()
+                                   && request.auth.uid == uid;
+      allow update: if false;
+    }
+
+    // ─── /users/{uid}/collection/{pieceId} (T038) ───────────────────────────
+    // Idéntico a /favorites/ [FR-047]
+    match /users/{uid}/collection/{pieceId} {
+      allow read, create, delete: if isEnabledVisitorOrAdmin()
+                                   && request.auth.uid == uid;
+      allow update: if false;
+    }
+
   }
 }

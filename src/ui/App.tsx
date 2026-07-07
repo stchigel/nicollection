@@ -1,5 +1,17 @@
-// Minimal placeholder — Phase 7 (T067-T073) implements the full router and hooks.
-// Phase 8 (T078-T090) implements all screens.
+/**
+ * App — punto de entrada de la UI.
+ *
+ * AuthProvider envuelve RouterProvider para que todos los componentes
+ * de ruta tengan acceso al contexto de autenticación via useAuthContext().
+ */
+import { RouterProvider } from 'react-router-dom'
+import { AuthProvider } from '@ui/context/AuthContext'
+import { router } from '@ui/router'
+
 export default function App() {
-  return <div>nicollection</div>
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  )
 }

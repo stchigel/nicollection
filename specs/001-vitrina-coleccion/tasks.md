@@ -95,14 +95,14 @@
 
 ### 3B — 🔒 Implementación de `firestore.rules` (tras confirmar que tests de 3A fallan)
 
-- [ ] T031 → T025-T030 | 🔒 Implementar funciones auxiliares en `firestore.rules`: `isAuthenticated()`, `userDoc()`, `isAdmin()`, `isEnabledUser()`, `isEnabledAdmin()`, `isEnabledVisitorOrAdmin()`; estas funciones usan `get()` sobre `/users/{uid}` — el mismo commit debe incluir la estructura base de `/users/` [data-model.md §5]
-- [ ] T032 [P] → T031, T025 | 🔒 Implementar reglas `/categories/{categoryId}` en `firestore.rules`: `read: true`; `write: isEnabledAdmin()`. Commit sincronizado con `Category.ts` [SEC-001, SEC-003]
-- [ ] T033 [P] → T031, T026 | 🔒 Implementar reglas `/pieces/{pieceId}` en `firestore.rules`: `read`: si `status == 'published'` permite todos; si `draft` solo Admin; `create/update/delete`: solo `isEnabledAdmin()` con validaciones: `title` no vacío, `status` en enum válido. Commit sincronizado con `Piece.ts` [SEC-001 a SEC-004]
-- [ ] T034 [P] → T031, T026 | 🔒 Implementar reglas `/pieces/{pieceId}/private/{doc}` en `firestore.rules`: `read` y `write`: solo `isEnabledAdmin()`. Commit sincronizado con `AdminData.ts` [SEC-004(a)]
-- [ ] T035 [P] → T031, T027 | 🔒 Implementar reglas `/users/{uid}` en `firestore.rules`: `read`: owner o Admin; `create`: solo owner, con `role == 'visitor'` y `enabled == true`; `update`: solo `isEnabledAdmin()`, con restricción `!(resource.data.uid == request.auth.uid && request.resource.data.enabled == false)`; `delete`: nadie. Commit sincronizado con `User.ts` [SEC-004(e), SEC-006]
-- [ ] T036 [P] → T031, T028 | 🔒 Implementar reglas `/usernames/{username}` en `firestore.rules`: `read`: todos; `create`: autenticado con `request.resource.data.uid == request.auth.uid`; `update`: nadie; `delete`: `isEnabledAdmin()` [FR-035]
-- [ ] T037 [P] → T031, T029 | 🔒 Implementar reglas `/comments/{commentId}` en `firestore.rules`: `read`: todos; `create`: `isEnabledVisitorOrAdmin()` + `authorId == request.auth.uid` + `text.size() >= 1` + `text.size() <= 1000` + `edited == false`; `update`: autor habilitado (solo campos `text`, `edited`, `editedAt`) o Admin; `delete`: autor habilitado o Admin. Commit sincronizado con `Comment.ts` [SEC-002, SEC-004(c)]
-- [ ] T038 [P] → T031, T030 | 🔒 Implementar reglas `/users/{uid}/favorites/{pieceId}` y `/users/{uid}/collection/{pieceId}` en `firestore.rules`: `read/create/delete`: `isEnabledVisitorOrAdmin() && uid == request.auth.uid`; `update`: nadie. Commit sincronizado con `Favorite.ts`/`CollectionEntry.ts` [SEC-002, SEC-004(c)]
+- [x] T031 → T025-T030 | 🔒 Implementar funciones auxiliares en `firestore.rules`: `isAuthenticated()`, `userDoc()`, `isAdmin()`, `isEnabledUser()`, `isEnabledAdmin()`, `isEnabledVisitorOrAdmin()`; estas funciones usan `get()` sobre `/users/{uid}` — el mismo commit debe incluir la estructura base de `/users/` [data-model.md §5]
+- [x] T032 [P] → T031, T025 | 🔒 Implementar reglas `/categories/{categoryId}` en `firestore.rules`: `read: true`; `write: isEnabledAdmin()`. Commit sincronizado con `Category.ts` [SEC-001, SEC-003]
+- [x] T033 [P] → T031, T026 | 🔒 Implementar reglas `/pieces/{pieceId}` en `firestore.rules`: `read`: si `status == 'published'` permite todos; si `draft` solo Admin; `create/update/delete`: solo `isEnabledAdmin()` con validaciones: `title` no vacío, `status` en enum válido. Commit sincronizado con `Piece.ts` [SEC-001 a SEC-004]
+- [x] T034 [P] → T031, T026 | 🔒 Implementar reglas `/pieces/{pieceId}/private/{doc}` en `firestore.rules`: `read` y `write`: solo `isEnabledAdmin()`. Commit sincronizado con `AdminData.ts` [SEC-004(a)]
+- [x] T035 [P] → T031, T027 | 🔒 Implementar reglas `/users/{uid}` en `firestore.rules`: `read`: owner o Admin; `create`: solo owner, con `role == 'visitor'` y `enabled == true`; `update`: solo `isEnabledAdmin()`, con restricción `!(resource.data.uid == request.auth.uid && request.resource.data.enabled == false)`; `delete`: nadie. Commit sincronizado con `User.ts` [SEC-004(e), SEC-006]
+- [x] T036 [P] → T031, T028 | 🔒 Implementar reglas `/usernames/{username}` en `firestore.rules`: `read`: todos; `create`: autenticado con `request.resource.data.uid == request.auth.uid`; `update`: nadie; `delete`: `isEnabledAdmin()` [FR-035]
+- [x] T037 [P] → T031, T029 | 🔒 Implementar reglas `/comments/{commentId}` en `firestore.rules`: `read`: todos; `create`: `isEnabledVisitorOrAdmin()` + `authorId == request.auth.uid` + `text.size() >= 1` + `text.size() <= 1000` + `edited == false`; `update`: autor habilitado (solo campos `text`, `edited`, `editedAt`) o Admin; `delete`: autor habilitado o Admin. Commit sincronizado con `Comment.ts` [SEC-002, SEC-004(c)]
+- [x] T038 [P] → T031, T030 | 🔒 Implementar reglas `/users/{uid}/favorites/{pieceId}` y `/users/{uid}/collection/{pieceId}` en `firestore.rules`: `read/create/delete`: `isEnabledVisitorOrAdmin() && uid == request.auth.uid`; `update`: nadie. Commit sincronizado con `Favorite.ts`/`CollectionEntry.ts` [SEC-002, SEC-004(c)]
 
 **Checkpoint Phase 3**: `vitest run tests/security/` — **100% tests verdes**. Verificar que los tests cubren todos los roles definidos en SEC-001 a SEC-006.
 
@@ -113,12 +113,12 @@
 **Objetivo**: Repositorios concretos que adaptan el SDK de Firebase al dominio.
 **Prerequisito**: Phase 2 completada (interfaces en T010). Phase 3 puede correr en paralelo.
 
-- [ ] T039 → T001-T007 | Implementar `src/infrastructure/firebase/firebaseConfig.ts`: inicialización del SDK de Firebase v9 modular; exporta `app`, `auth`, `db`; usa variables de entorno `import.meta.env.VITE_*`; en modo emulador conecta con `connectFirestoreEmulator` y `connectAuthEmulator` [FR-034/037]
-- [ ] T040 [P] → T006 | Declarar los 9 índices compuestos en `firestore.indexes.json`: I-001 a I-009 según `data-model.md §4`; sin este archivo las consultas con múltiples `where` fallan en producción [FR-007/010/011, RNF-007]
-- [ ] T041 [P] → T010, T039 | Implementar `src/infrastructure/repositories/FirestoreCategoryRepository.ts`: `findAll()` con `getDocs`; implementa `ICategoryRepository`; mapea documentos Firestore a entidades `Category` [US1, FR-001]
+- [x] T039 → T001-T007 | Implementar `src/infrastructure/firebase/firebaseConfig.ts`: inicialización del SDK de Firebase v9 modular; exporta `app`, `auth`, `db`; usa variables de entorno `import.meta.env.VITE_*`; en modo emulador conecta con `connectFirestoreEmulator` y `connectAuthEmulator` [FR-034/037]
+- [x] T040 [P] → T006 | Declarar los 9 índices compuestos en `firestore.indexes.json`: I-001 a I-009 según `data-model.md §4`; sin este archivo las consultas con múltiples `where` fallan en producción [FR-007/010/011, RNF-007]
+- [x] T041 [P] → T010, T039 | Implementar `src/infrastructure/repositories/FirestoreCategoryRepository.ts`: `findAll()` con `getDocs`; implementa `ICategoryRepository`; mapea documentos Firestore a entidades `Category` [US1, FR-001]
 - [ ] T042 [P] → T010, T039, T040 | Implementar `src/infrastructure/repositories/FirestorePieceRepository.ts`: `findByCategory(categoryId, filters, cursor, pageSize)` con `startAfter(cursor)` y `limit(pageSize)` — **nunca sin `limit()`**; `findById(id, role)` — incluye validación de draft; `create()`, `update()`, `delete()`; `countDependencies(pieceId)` para preview de delete; mapea a/desde entidades `Piece` + `AdminData` en subcollección separada [US2/3/7, FR-007/018/031, research.md D-007]
 - [ ] T043 [P] → T010, T039, T040 | Implementar `src/infrastructure/repositories/FirestoreCommentRepository.ts`: `findByPiece(pieceId, cursor)` con `orderBy('createdAt', 'asc')` + `limit(20)`; `findByAuthor(authorId, cursor)` para perfil; `create()`, `update()`, `delete()`; `deleteAllByPiece(pieceId)` para cascade (batches de ≤500) [US3/6, FR-040/041/042, research.md D-006]
-- [ ] T044 [P] → T010, T039 | Implementar `src/infrastructure/repositories/FirestoreUserRepository.ts`: `findAll()` para panel Admin; `findByUid(uid)`; `update(uid, data)`; `listenToUser(uid, callback)` retorna `unsubscribe` — usado para detección de inhabilitación en tiempo real [US5/8, FR-034/039/050, research.md D-004]
+- [x] T044 [P] → T010, T039 | Implementar `src/infrastructure/repositories/FirestoreUserRepository.ts`: `findAll()` para panel Admin; `findByUid(uid)`; `update(uid, data)`; `listenToUser(uid, callback)` retorna `unsubscribe` — usado para detección de inhabilitación en tiempo real [US5/8, FR-034/039/050, research.md D-004]
 - [ ] T045 [P] → T010, T039 | Implementar `src/infrastructure/repositories/FirestoreInteractionRepository.ts`: `toggleFavorite(userId, pieceId)`; `isFavorite(userId, pieceId)`; `listFavorites(userId, cursor)` paginado; `deleteAllFavoritesByPiece(pieceId)` para cascade; análogos para collection; document ID = pieceId para garantizar idempotencia [US6, FR-046/047, research.md D-008]
 
 **Checkpoint Phase 4**: Repositorios compilan sin errores TypeScript; conectan correctamente al emulador con datos de semilla.
@@ -132,14 +132,14 @@
 
 ### 5A — Lectura y navegación [US1, US2, US3, US4]
 
-- [ ] T046 [P] → T019, T041 | Implementar `src/application/categories/ListCategoriesUseCase.ts`: obtiene todas las categorías, retorna separadas en `internal[]` y `external[]` [US1, US4, FR-001/003/005]
+- [x] T046 [P] → T019, T041 | Implementar `src/application/categories/ListCategoriesUseCase.ts`: obtiene todas las categorías, retorna separadas en `internal[]` y `external[]` [US1, US4, FR-001/003/005]
 - [ ] T047 [P] → T020, T042 | Implementar `src/application/pieces/ListPiecesUseCase.ts`: acepta `categoryId`, `filters` (year, country, pieceType, specificFields), `cursor`, `role`; construye la query Firestore con los filtros aplicados; retorna `{ items: PieceSummary[], nextCursor }` [US2, FR-007/010/011/012]
 - [ ] T048 [P] → T020, T042 | Implementar `src/application/pieces/SearchPiecesUseCase.ts`: acepta `categoryId`, `searchQuery`, `cursor`, `role`; normaliza query a minúsculas; usa `array-contains` sobre `searchTokens`; retorna paginado [US2, FR-008/009, research.md D-001]
 - [ ] T049 [P] → T020, T023, T042 | Implementar `src/application/pieces/GetPieceDetailUseCase.ts`: obtiene pieza por id; si `draft` y solicitante no es Admin retorna `null`; carga `adminData` desde subcollección solo si rol es Admin [US3, FR-015/017/018]
 
 ### 5B — Autenticación y usuarios [US5, US8]
 
-- [ ] T050 → T018, T022, T044 | Implementar `src/application/users/RegisterUseCase.ts`: valida `Username.create(username)`; ejecuta transacción Firestore: (1) crea `/usernames/{username}` — falla si ya existe; (2) crea `/users/{uid}` con `role:'visitor'`, `enabled:true`; maneja `FirebaseError` de Auth para email duplicado [US5, FR-034/035/036, research.md D-005]
+- [x] T050 → T018, T022, T044 | Implementar `src/application/users/RegisterUseCase.ts`: valida `Username.create(username)`; ejecuta transacción Firestore: (1) crea `/usernames/{username}` — falla si ya existe; (2) crea `/users/{uid}` con `role:'visitor'`, `enabled:true`; maneja `FirebaseError` de Auth para email duplicado [US5, FR-034/035/036, research.md D-005]
 - [ ] T051 [P] → T022, T044 | Implementar `src/application/users/DisableUserUseCase.ts`: invoca `User.canBeDisabledBy(requestingAdminUid)`; si falla lanza `DomainError`; actualiza `enabled:false` en `/users/{uid}` [US8, FR-051/055, SEC-005]
 - [ ] T052 [P] → T022, T044 | Implementar `src/application/users/EnableUserUseCase.ts`: actualiza `enabled:true` en `/users/{uid}` [US8, FR-051]
 - [ ] T053 [P] → T018, T022, T043, T044 | Implementar `src/application/users/ChangeUsernameUseCase.ts`: valida nuevo username; transacción: elimina `/usernames/{old}`, crea `/usernames/{new}`, actualiza `/users/{uid}.username`; batch update de `authorUsername` en todos los comentarios del usuario (múltiples batches si >500) [US8, FR-052/053, research.md D-006]
@@ -184,11 +184,11 @@
 **Objetivo**: Infraestructura de UI — router, contexto de auth, componentes base reutilizables.
 **Prerequisito**: Phase 1. **Puede correr en paralelo con Phases 2-5** hasta que necesite los casos de uso.
 
-- [ ] T066 → T039 | Implementar `src/ui/hooks/useAuth.ts`: suscripción a `onAuthStateChanged`; al detectar usuario carga `/users/{uid}` y suscribe con `onSnapshot` para detectar cambio de `enabled`; si `enabled` pasa a `false` llama `signOut()` y redirige a home [US5, FR-039, SEC-005, research.md D-004]
-- [ ] T067 [P] → T003 | Configurar `src/ui/router.tsx` con React Router: rutas públicas `/ /categoria/:id /pieza/:id /auth`; rutas de Visitante `/perfil`; rutas de Admin `/admin/piezas /admin/piezas/nueva /admin/piezas/:id/editar /admin/usuarios`; usa `<ProtectedRoute>` (implementado en T068) para envolver rutas que requieren autenticación o rol específico [US5/7/8, FR-002]
-- [ ] T068 [P] → T066, T067 | Implementar `src/ui/components/ProtectedRoute.tsx`: recibe `requiredRole`; si no autenticado redirige a `/auth`; si rol insuficiente muestra 403; si usuario inhabilitado redirige a home
-- [ ] T069 [P] → T003 | Implementar `src/ui/components/layout/Layout.tsx`: barra de navegación con logo, link a categorías, login/logout según estado de auth, acceso admin si rol Admin; footer
-- [ ] T070 [P] → T003 | Implementar componentes UI base: `src/ui/components/LoadingSpinner.tsx`, `src/ui/components/ErrorBoundary.tsx`, `src/ui/components/EmptyState.tsx` (mensaje + acción opcional) [US2, FR-014]
+- [x] T066 → T039 | Implementar `src/ui/hooks/useAuth.ts`: suscripción a `onAuthStateChanged`; al detectar usuario carga `/users/{uid}` y suscribe con `onSnapshot` para detectar cambio de `enabled`; si `enabled` pasa a `false` llama `signOut()` y redirige a home [US5, FR-039, SEC-005, research.md D-004]
+- [x] T067 [P] → T003 | Configurar `src/ui/router.tsx` con React Router: rutas públicas `/ /categoria/:id /pieza/:id /auth`; rutas de Visitante `/perfil`; rutas de Admin `/admin/piezas /admin/piezas/nueva /admin/piezas/:id/editar /admin/usuarios`; usa `<ProtectedRoute>` (implementado en T068) para envolver rutas que requieren autenticación o rol específico [US5/7/8, FR-002]
+- [x] T068 [P] → T066, T067 | Implementar `src/ui/components/ProtectedRoute.tsx`: recibe `requiredRole`; si no autenticado redirige a `/auth`; si rol insuficiente muestra 403; si usuario inhabilitado redirige a home
+- [x] T069 [P] → T003 | Implementar `src/ui/components/layout/Layout.tsx`: barra de navegación con logo, link a categorías, login/logout según estado de auth, acceso admin si rol Admin; footer
+- [x] T070 [P] → T003 | Implementar componentes UI base: `src/ui/components/LoadingSpinner.tsx`, `src/ui/components/ErrorBoundary.tsx`, `src/ui/components/EmptyState.tsx` (mensaje + acción opcional) [US2, FR-014]
 - [ ] T071 [P] → T003 | Implementar `src/ui/components/ConfirmDialog.tsx`: acepta `title`, `description`, `items: { label, count }[]` (para mostrar conteos de dependencias), callbacks `onConfirm` / `onCancel` [US7, FR-031]
 - [ ] T072 [P] → T066, T047, T048 | Implementar `src/ui/hooks/usePieces.ts`: estado `pieces`, `isLoading`, `cursor`, `filters`, `searchQuery`; expone `loadMore()`, `applyFilter()`, `setSearch()`, `clearFilters()`; integra `ListPiecesUseCase` y `SearchPiecesUseCase` [US2, FR-007/013]
 - [ ] T073 [P] → T066, T060, T061 | Implementar `src/ui/hooks/useInteractions.ts`: estado `isFavorite`, `isInCollection`, `isTogglingFavorite`, `isTogglingCollection`; expone `toggleFavorite()`, `toggleCollection()`; operaciones idempotentes [US6, FR-046/047]
@@ -205,15 +205,15 @@
 
 ### 8A — View-models de presentación [Constitución III]
 
-- [ ] T074 [P] → T019 | Implementar `src/presentation/categories/CategoryViewModel.ts`: traduce `Category` a props del tile (name, type, externalUrl) [US1, Constitución III]
+- [x] T074 [P] → T019 | Implementar `src/presentation/categories/CategoryViewModel.ts`: traduce `Category` a props del tile (name, type, externalUrl) [US1, Constitución III]
 - [ ] T075 [P] → T020 | Implementar `src/presentation/pieces/PieceSummaryViewModel.ts`: traduce `Piece` a los campos para la tarjeta del listado — **solo campos públicos**, sin `adminData` [US2, FR-015, Constitución III]
 - [ ] T076 [P] → T020, T023 | Implementar `src/presentation/pieces/PieceDetailViewModel.ts`: traduce `Piece` + `AdminData` opcional a la ficha; incluye `adminFields` solo si el rol es `'admin'`; garantía en tiempo de compilación que Público/Visitante no reciben campos admin [US3/7, FR-017, Constitución III]
 - [ ] T077 [P] → T022 | Implementar `src/presentation/users/UserViewModel.ts`: traduce `User` para perfil (solo lectura) y para panel admin (con acciones disponibles según contexto) [US5/6/8, Constitución III]
 
 ### 8B — Pantallas públicas [US1, US2, US3, US4]
 
-- [ ] T078 → T046, T074, T069 | Implementar `src/ui/pages/HomePage.tsx`: grilla responsive de `CategoryTile`; usa `ListCategoriesUseCase`; muestra `EmptyState` si no hay categorías; carga completa en ≤ 5 segundos [US1, FR-001/005]
-- [ ] T079 [P] → T074 | Implementar `src/ui/components/CategoryTile.tsx`: muestra nombre; indicador visual diferenciado para externa (ícono + etiqueta); click en interna → `navigate('/categoria/:id')`; click en externa → `window.open(externalUrl, '_blank')` [US1/4, FR-002/003/005]
+- [x] T078 → T046, T074, T069 | Implementar `src/ui/pages/HomePage.tsx`: grilla responsive de `CategoryTile`; usa `ListCategoriesUseCase`; muestra `EmptyState` si no hay categorías; carga completa en ≤ 5 segundos [US1, FR-001/005]
+- [x] T079 [P] → T074 | Implementar `src/ui/components/CategoryTile.tsx`: muestra nombre; indicador visual diferenciado para externa (ícono + etiqueta); click en interna → `navigate('/categoria/:id')`; click en externa → `window.open(externalUrl, '_blank')` [US1/4, FR-002/003/005]
 - [ ] T080 → T072, T075, T078 | Implementar `src/ui/pages/CategoryPage.tsx`: listado paginado con `usePieces`; `SearchBar` + `FilterPanel`; botón "cargar más" o indicador de fin; `EmptyState` con botón "limpiar filtros" cuando sin resultados [US2, FR-007 a FR-014]
 - [ ] T081 [P] → T075 | Implementar `src/ui/components/PieceCard.tsx`: muestra título, año, pieceType, imageUrl (si existe); enlace a `/pieza/:id` [US2, FR-007]
 - [ ] T082 [P] → T072 | Implementar `src/ui/components/SearchBar.tsx`: input controlado; dispara búsqueda al presionar Enter o hacer clic en botón; botón de limpiar [US2, FR-008/009/013]
@@ -223,7 +223,7 @@
 
 ### 8C — Auth y Perfil [US5, US6]
 
-- [ ] T086 → T050, T066, T067 | Implementar `src/ui/pages/AuthPage.tsx`: tabs "Iniciar Sesión" / "Registrarse"; formulario de registro con validación inline de `Username`; mensajes de error descriptivos para username duplicado, email duplicado, contraseña inválida; usa `RegisterUseCase` + Firebase Auth `signInWithEmailAndPassword` [US5, FR-034/035/037]
+- [x] T086 → T050, T066, T067 | Implementar `src/ui/pages/AuthPage.tsx`: tabs "Iniciar Sesión" / "Registrarse"; formulario de registro con validación inline de `Username`; mensajes de error descriptivos para username duplicado, email duplicado, contraseña inválida; usa `RegisterUseCase` + Firebase Auth `signInWithEmailAndPassword` [US5, FR-034/035/037]
 - [ ] T087 → T060, T061, T073, T077 | Implementar `src/ui/pages/ProfilePage.tsx`: tabs "Mis Favoritos" / "Mi Colección" / "Mis Comentarios"; listas paginadas filtradas de piezas publicadas; piezas eliminadas/despublicadas omitidas; nombre de usuario en solo lectura (no editable por el Visitante — Decisión Q3) [US6, FR-048/049]
 
 ### 8D — Panel de administración [US7, US8]
