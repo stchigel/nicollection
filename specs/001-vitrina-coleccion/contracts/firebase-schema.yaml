@@ -1,0 +1,349 @@
+# nicollection V1 — Firebase Schema Contract
+#
+# Este archivo documenta el contrato entre el cliente y Firebase.
+# No es un contrato REST/HTTP. No aplica OpenAPI en este proyecto porque:
+#   - No existe backend propio ni API HTTP personalizada.
+#   - La "API" es el Firebase SDK (Firestore + Auth); su contrato es este schema.
+#   - La autorización se implementa en firestore.rules (ver data-model.md §5).
+#
+# Formato: YAML estructurado. Cada top-level key es una colección Firestore.
+# Leyenda de tipos: string, number, boolean, timestamp, string[], map, null
+#
+# Spec de referencia: specs/001-vitrina-coleccion/spec.md
+# Modelo completo:    specs/001-vitrina-coleccion/data-model.md
+
+---
+schema_version: "1.0"
+platform: firestore
+firebase_project: nicollection
+sdk_version: "firebase-js-sdk-v9-modular"
+
+collections:
+
+  categories:
+    path: /categories/{categoryId}
+    description: >
+      Definición de categorías de la colección. Incluye tanto categorías
+      internas (con ABM de piezas) como externas (redirigen a Colnect).
+    access:
+      read: public          # cualquier usuario, autenticado o no
+      write: admin_only
+    fields:
+      name:
+        type: string
+        required: true
+        description: Nombre visible de la categoría
+      type:
+        type: string
+        required: true
+        enum: [internal, external]
+        description: Tipo de categoría
+      externalUrl:
+        type: string
+        required: false
+        nullable: true
+        description: URL de redirección (solo si type == external)
+      displayOrder:
+        type: number
+        required: true
+        description: Orden de aparición en la home (ascendente)
+      fieldSchema:
+        type: array
+        items:
+          type: map
+          fields:
+            key:       { type: string, required: true }
+            label:     { type: string, required: true }
+            fieldType: { type: string, enum: [string, number, date], required: true }
+            required:  { type: boolean, required: true }
+        required: false
+        description: Campos específicos de la categoría (solo si type == internal)
+      createdAt:  { type: timestamp, required: true }
+      updatedAt:  { type: timestamp, required: true }
+    invariants:
+      - if type == external then externalUrl != null and fieldSchema == []
+      - if type == internal then externalUrl == null
+
+  pieces:
+    path: /pieces/{pieceId}
+    description: >
+      Datos públicos de una pieza de la colección. Los campos de administración
+      se almacenan en la subcollección /pieces/{pieceId}/private/adminData.
+    access:
+      read_published: public
+      read_draft: admin_only
+      write: admin_only
+    fields:
+      categoryId:
+        type: string
+        required: true
+        description: Referencia a /categories/{categoryId}; debe ser tipo internal
+      title:
+        type: string
+        required: true
+        minLength: 1
+        description: Título de la pieza (no puede ser vacío)
+      description:
+        type: string
+        required: false
+        nullable: true
+      tags:
+        type: string[]
+        required: false
+        maxItems: 20
+        description: Etiquetas de la pieza
+      year:
+        type: number
+        required: false
+        nullable: true
+      country:
+        type: string
+        required: false
+        nullable: true
+        description: Código ISO 3166-1 alpha-2
+      pieceType:
+        type: string
+        required: false
+        nullable: true
+        description: Valor de lista cerrada (ej. Papelería, Objeto)
+      imageUrl:
+        type: string
+        required: false
+        nullable: true
+        description: URL de imagen externa (texto libre; no hay upload en V1)
+      status:
+        type: string
+        required: true
+        enum: [published, draft]
+        default: published
+      specificFields:
+        type: map
+        required: false
+        description: >
+          Campos dinámicos según la categoría. Su estructura conforma al
+          fieldSchema de la categoría referenciada en categoryId.
+        examples:
+          airlines:  { airline: "Aerolíneas Argentinas", subtype: "tarjeta de embarque" }
+          hotels:    { chain: "Hilton", specificHotel: "Hilton BsAs", city: "Buenos Aires", subtype: "llave" }
+          phones:    { manufacturer: "Nokia", model: "3310", operatingSystem: "Series 30", color: "azul" }
+          retro_tech: { manufacturer: "Palm", model: "Pilot 1000", subtype: "Handheld" }
+      searchTokens:
+        type: string[]
+        required: true
+        description: >
+          Tokens de búsqueda normalizados (minúsculas). Generados por el dominio
+          a partir de title + description + tags. Usados con array-contains.
+      createdAt:  { type: timestamp, required: true }
+      updatedAt:  { type: timestamp, required: true }
+      createdBy:
+        type: string
+        required: true
+        description: UID del Admin que creó la pieza
+    invariants:
+      - title must not be empty
+      - categoryId must reference a category with type == internal
+      - specificFields must conform to the fieldSchema of the referenced category
+      - searchTokens is always generated by the domain; never set directly by the UI
+
+  pieces_private:
+    path: /pieces/{pieceId}/private/adminData
+    description: >
+      Datos de administración de una pieza. Subcollección de acceso exclusivo para Admin.
+      Ocultos completamente para Público y Visitante (Firestore Security Rules).
+    access:
+      read: admin_only
+      write: admin_only
+    fields:
+      functioning:
+        type: string
+        required: false
+        nullable: true
+        enum: [yes, no, na]
+        description: ¿La pieza funciona?
+      hasBox:
+        type: string
+        required: false
+        nullable: true
+        enum: [yes, no, na]
+        description: ¿Tiene caja original?
+      accessories:
+        type: string[]
+        required: false
+        description: Lista de accesorios (ej. ["cargador", "stylus"])
+      condition:
+        type: string
+        required: false
+        nullable: true
+        enum: [perfect, excellent, good, acceptable, poor, very_poor]
+      provenance:
+        type: string
+        required: false
+        nullable: true
+        description: Procedencia (texto libre, ej. "Regalo de amigos")
+      acquisitionDate:
+        type: timestamp
+        required: false
+        nullable: true
+        description: Fecha de adquisición
+      notes:
+        type: string
+        required: false
+        nullable: true
+        description: Notas internas del Admin
+      updatedAt: { type: timestamp, required: true }
+
+  users:
+    path: /users/{uid}
+    description: >
+      Perfil de usuario del dominio. El uid es el mismo que el UID de Firebase Auth.
+      Las credenciales (email/password) las gestiona Firebase Auth exclusivamente.
+    access:
+      read: owner_or_admin
+      create: owner_only_on_registration   # role forzado a visitor, enabled a true
+      update: admin_only                   # los usuarios no pueden modificar su propio rol
+      delete: nobody                       # no hay eliminación de cuentas en V1
+    fields:
+      username:
+        type: string
+        required: true
+        minLength: 3
+        maxLength: 30
+        pattern: "^[a-zA-Z0-9_-]+$"
+        description: Nombre de usuario único en el sistema
+      role:
+        type: string
+        required: true
+        enum: [visitor, admin]
+        description: Rol del usuario en el sistema
+      enabled:
+        type: boolean
+        required: true
+        default: true
+        description: Si false, el usuario no puede realizar acciones autenticadas
+      createdAt: { type: timestamp, required: true }
+    invariants:
+      - username must be unique across all /users/ documents (enforced via /usernames/)
+      - role cannot be changed to admin via the public interface
+      - an admin cannot set their own enabled to false
+
+  usernames:
+    path: /usernames/{username}
+    description: >
+      Índice de unicidad de nombres de usuario. El ID del documento es el username
+      en minúsculas. Permite garantizar unicidad mediante transacciones Firestore.
+    access:
+      read: public           # necesario para verificar disponibilidad en el formulario de registro
+      create: authenticated  # solo el usuario registrándose; uid debe coincidir con su propio auth uid
+      update: nobody
+      delete: admin_only     # solo Admin, para cambios de nombre de usuario
+    fields:
+      uid:
+        type: string
+        required: true
+        description: UID de Firebase Auth del propietario del username
+    invariants:
+      - el document ID (username) debe coincidir con /users/{uid}.username del propietario
+      - la creación debe ser parte de una transacción Firestore junto con la creación de /users/{uid}
+
+  comments:
+    path: /comments/{commentId}
+    description: >
+      Comentarios de usuarios sobre piezas publicadas. Colección raíz para
+      soportar consultas tanto por pieza como por autor.
+    access:
+      read: public
+      create: enabled_visitor_or_admin
+      update: author_or_admin    # autor puede modificar text, edited, editedAt
+      delete: author_or_admin
+    fields:
+      pieceId:
+        type: string
+        required: true
+        description: Referencia a /pieces/{pieceId}
+      authorId:
+        type: string
+        required: true
+        description: UID del autor
+      authorUsername:
+        type: string
+        required: true
+        description: >
+          Nombre de usuario desnormalizado. Se actualiza en batch cuando el
+          Admin modifica el username del autor (ver research.md D-006).
+      text:
+        type: string
+        required: true
+        minLength: 1
+        maxLength: 1000
+      createdAt:  { type: timestamp, required: true }
+      editedAt:
+        type: timestamp
+        required: false
+        nullable: true
+        description: Fecha de la última edición (null si nunca fue editado)
+      edited:
+        type: boolean
+        required: true
+        default: false
+    invariants:
+      - authorId must equal request.auth.uid at creation time
+      - text must not be empty
+      - edited must be false at creation time
+      - only the author or an admin can modify or delete a comment
+      - a disabled user's past comments remain visible but they cannot create/edit/delete
+
+  user_favorites:
+    path: /users/{uid}/favorites/{pieceId}
+    description: >
+      Favoritos de un usuario. El ID del documento es el pieceId para garantizar
+      idempotencia (marcar dos veces no crea duplicado).
+    access:
+      read: owner_or_admin
+      create: owner_only_enabled
+      delete: owner_only_enabled
+      update: nobody
+    fields:
+      pieceId:
+        type: string
+        required: true
+        description: Referencia a /pieces/{pieceId}
+      createdAt: { type: timestamp, required: true }
+    invariants:
+      - the document ID must equal the pieceId field
+      - the user can only access their own favorites subcollection
+
+  user_collection:
+    path: /users/{uid}/collection/{pieceId}
+    description: >
+      Piezas marcadas como "En Colección" por el usuario. Misma estructura que favorites.
+    access:
+      read: owner_or_admin
+      create: owner_only_enabled
+      delete: owner_only_enabled
+      update: nobody
+    fields:
+      pieceId:
+        type: string
+        required: true
+      createdAt: { type: timestamp, required: true }
+    invariants:
+      - the document ID must equal the pieceId field
+      - the user can only access their own collection subcollection
+
+# ---------------------------------------------------------------------------
+# Firebase Authentication Contract
+# ---------------------------------------------------------------------------
+firebase_auth:
+  provider: email_password
+  token_validity: 3600   # segundos; 1 hora por defecto de Firebase Auth
+  session_invalidation_strategy: >
+    Sin Firebase Admin SDK (no hay Functions en V1), los tokens no pueden revocarse
+    programáticamente. La invalidación se implementa mediante:
+    (1) Security Rules verifican /users/{uid}.enabled == true en cada operación;
+    (2) El cliente escucha /users/{uid} con onSnapshot y llama signOut() si enabled pasa a false.
+    Tiempo de efectividad garantizado: < 60 segundos (RNF-006).
+  role_strategy: >
+    Los roles se almacenan en /users/{uid}.role (no en custom claims).
+    Las Security Rules leen el rol vía get() en /users/{uid}.
+    El rol admin no puede asignarse vía la interfaz pública; solo por configuración directa
+    en Firestore (fuera de la interfaz del sistema).
