@@ -7,6 +7,8 @@ import HomePage from '@ui/pages/HomePage'
 import AuthPage from '@ui/pages/AuthPage'
 import PieceListPage from '@ui/pages/admin/PieceListPage'
 import PieceFormPage from '@ui/pages/admin/PieceFormPage'
+import CategoryListPage from '@ui/pages/admin/CategoryListPage'
+import CategoryFormPage from '@ui/pages/admin/CategoryFormPage'
 import ProtectedRoute from '@ui/components/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -14,14 +16,8 @@ export const router = createBrowserRouter([
     path: '/',
     element: <Layout />,
     children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: 'auth',
-        element: <AuthPage />,
-      },
+      { index: true, element: <HomePage /> },
+      { path: 'auth', element: <AuthPage /> },
       {
         path: 'categoria/:id',
         element: <div className="page-placeholder">Listado de piezas — próximamente</div>,
@@ -43,27 +39,23 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'piezas',
-            element: (
-              <ProtectedRoute requiredRole="admin">
-                <PieceListPage />
-              </ProtectedRoute>
-            ),
+            element: <ProtectedRoute requiredRole="admin"><PieceListPage /></ProtectedRoute>,
           },
           {
             path: 'piezas/nueva',
-            element: (
-              <ProtectedRoute requiredRole="admin">
-                <PieceFormPage />
-              </ProtectedRoute>
-            ),
+            element: <ProtectedRoute requiredRole="admin"><PieceFormPage /></ProtectedRoute>,
           },
           {
             path: 'piezas/:id/editar',
-            element: (
-              <ProtectedRoute requiredRole="admin">
-                <PieceFormPage />
-              </ProtectedRoute>
-            ),
+            element: <ProtectedRoute requiredRole="admin"><PieceFormPage /></ProtectedRoute>,
+          },
+          {
+            path: 'categorias',
+            element: <ProtectedRoute requiredRole="admin"><CategoryListPage /></ProtectedRoute>,
+          },
+          {
+            path: 'categorias/nueva',
+            element: <ProtectedRoute requiredRole="admin"><CategoryFormPage /></ProtectedRoute>,
           },
           {
             path: 'usuarios',
@@ -77,11 +69,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '*',
-        element: (
-          <div className="error-boundary">
-            <h2>404 — Página no encontrada</h2>
-          </div>
-        ),
+        element: <div className="error-boundary"><h2>404 — Página no encontrada</h2></div>,
       },
     ],
   },

@@ -26,9 +26,14 @@ export default function Layout() {
 
           <nav className="navbar__links">
             {isAdmin && (
-              <Link to="/admin/piezas" className="navbar__link">
-                Panel Admin
-              </Link>
+              <>
+                <Link to="/admin/categorias" className="navbar__link">
+                  Categorías
+                </Link>
+                <Link to="/admin/piezas" className="navbar__link">
+                  Piezas
+                </Link>
+              </>
             )}
             {isAuthenticated ? (
               <>
